@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: Namespace
+
+metadata:
+  name: strimzi-system
+
+---
+
+apiVersion: configsync.gke.io/v1beta1
+kind: RepoSync
+
+metadata:
+  name: repo-sync # this name is required
+  namespace: strimzi-system
+
+spec:
+  sourceFormat: unstructured
+  git:
+    repo: http://gitea-learning:32100/config-sync-developer/config-sync-demo.git
+    dir: /namespaces/strimzi-system
+    branch: main
+    auth: none
+
+---
+
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+
+metadata:
+  name: ns-reconciler-strimzi-system
+  namespace: strimzi-system
+
+subjects:
+- kind: ServiceAccount
+  name: ns-reconciler-strimzi-system # created by Config Sync for the RepoSync reconciler
+  namespace: config-management-system
+roleRef:
+  kind: ClusterRole
+  name: admin
+  apiGroup: rbac.authorization.k8s.io
